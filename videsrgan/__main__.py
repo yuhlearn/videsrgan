@@ -1,6 +1,6 @@
-"""Entry point for videsrgan."""
+"""Entry point for videnh."""
 
-from videsrgan.cli import main  # pragma: no cover
+from videnh.cli import main  # pragma: no cover
 
 if __name__ == "__main__":  # pragma: no cover
     main()
