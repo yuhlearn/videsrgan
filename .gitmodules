@@ -1,3 +1,0 @@
-[submodule "videsrgan/ncnn"]
-	path = videsrgan/ncnn
-	url = https://github.com/Tencent/ncnn

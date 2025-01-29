@@ -5,6 +5,14 @@
 
 Awesome videsrgan created by yuhlearn
 
+## Building on Debian/Ubuntu
+
+To build the project you first need the following packages installed
+
+```
+sudo apt install build-essential git cmake libprotobuf-dev protobuf-compiler libomp-dev libvulkan-dev vulkan-tools libopencv-dev mesa-vulkan-drivers
+```
+
 ## Install it from PyPI
 
 ```bash
