@@ -92,7 +92,7 @@ int get_gpu_count() { return ncnn::get_gpu_count(); }
 
 void destroy_gpu_instance() { ncnn::destroy_gpu_instance(); }
 
-PYBIND11_MODULE(realesrgan_ncnn_vulkan_wrapper, m)
+PYBIND11_MODULE(realesrganbind, m)
 {
     pybind11::class_<RealESRGANBind>(m, "RealESRGANBind")
         .def(pybind11::init<int, bool>())

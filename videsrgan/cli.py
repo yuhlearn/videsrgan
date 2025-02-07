@@ -1,7 +1,8 @@
 import argparse, os, av
 import av.audio
 import av.codec
-from realesrgan_ncnn_py import Realesrgan
+
+from videsrgan.realesrgan import RealESRGAN
 
 def int_constraint(input, constraint):
     try:      
@@ -22,8 +23,16 @@ def dir_type(input):
         raise argparse.ArgumentTypeError(f"'{input}' is not a valid path")
     
 def gpuid_type(input):
-    return int_constraint(input, (lambda x : (x >= 0)))
+    return int_constraint(input, (lambda x : (x >= -1)))
 
+def scale_type(input):
+    scales = (2,3,4)
+    value = int(input)
+    if value in scales:
+        return value
+    else:
+        raise argparse.ArgumentTypeError(f"'{input}' is not a valid scale")
+    
 def crf_type(input):
     return int_constraint(input, (lambda x : (x >= 0 and x <= 51)))
 
@@ -46,21 +55,26 @@ def main():  # pragma: no cover
     parser.add_argument('-o', help='output video path', type=argparse.FileType('w', encoding='UTF-8'))
     parser.add_argument('-t', help='tile size (>=32/0=auto, default=0)', type=tilesize_type, default=0)
     parser.add_argument('-m', help='folder path to the pre-trained models. default=models', type=dir_type, default='/usr/local/realesrgan-ncnn-vulkan-20220424-ubuntu/models')
-    parser.add_argument('-n', help='model name (default=realesr-animevideov3, can be realesr-animevideov3 | realesrgan-x4plus | realesrgan-x4plus-anime | realesrnet-x4plus)', default='realesr-animevideov3')
+    parser.add_argument('-n', help='model name (default=RealESRGAN_General_WDN_x4_v3, can be RealESRGAN_General_WDN_x4_v3 | realesrgan-x4plus)', type=str, default='RealESRGAN_General_WDN_x4_v3')
     parser.add_argument('-g', help='gpu device to use (default=auto) can be 0,1,2 for multi-gpu', type=gpuid_type, default=0)
-    parser.add_argument('-j', help='thread count for load/proc/save (default=1:2:2)', type=threadcount_type, default=(1,2,2))
-    parser.add_argument('-q', help='Constant Rate Factor -- a lower CRF gives better video quality (0>=51, default=17)', type=crf_type, default=17)
+    parser.add_argument('-s', help='upscale ratio (can be 2, 3, 4. default=4)', type=scale_type, default=4)
+    parser.add_argument('-q', help='a lower CRF gives better video quality (0>=51, default=17)', type=crf_type, default=17)
     parser.add_argument('-x', help='enable tta mode', action='store_true')
     parser.add_argument('-v', help='verbose output', action='store_true')
 
     args = parser.parse_args()
 
-    realesrgan = Realesrgan(gpuid=args.g, tta_mode=args.x, tilesize=args.t, model=0)
+    realesrgan = RealESRGAN(
+        gpuid=args.g, 
+        tta_mode=args.x, 
+        tilesize=args.t, 
+        scale=args.s,
+        model_path=args.m,
+        model=args.n
+    )
 
     with av.open(args.o.name, 'w') as output_container:
         with av.open(args.i.name, 'r') as input_container:
-            print('Finished video encoding.')
-
             # # Begin work on the audio stream(s)
             # for input_audio_stream in input_container.streams.audio:
             #     output_audio_stream = output_container.add_stream('mp3')
@@ -80,8 +94,8 @@ def main():  # pragma: no cover
 
             output_video_stream = output_container.add_stream('h264', input_video_stream.guessed_rate)
             output_video_stream.pix_fmt = 'yuv420p'
-            output_video_stream.width = input_video_stream.width*4
-            output_video_stream.height = input_video_stream.height*4
+            output_video_stream.width = input_video_stream.width * args.s
+            output_video_stream.height = input_video_stream.height * args.s
             output_video_stream.options = {
                 'crf' : str(args.q), 
                 'preset' : 'veryslow', 

@@ -1,4 +1,4 @@
-project(Real-ESRGAN-ncnn-vulkan-python)
+project(videsrgan)
 
 cmake_minimum_required(VERSION 3.9)
 cmake_policy(SET CMP0078 NEW)
