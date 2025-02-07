@@ -1,0 +1,3 @@
+[submodule "videsrgan/Real-ESRGAN-ncnn-vulkan"]
+	path = videsrgan/Real-ESRGAN-ncnn-vulkan
+	url = https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan.git
