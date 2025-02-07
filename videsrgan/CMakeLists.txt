@@ -245,12 +245,17 @@ realesrgan_add_shader(realesrgan_postproc_tta.comp)
 
 add_custom_target(generate-spirv DEPENDS ${SHADER_SPV_HEX_FILES})
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+add_subdirectory(pybind11)
 
-add_library(realesrganbind SHARED
-    src/realesrganbind.cpp
+pybind11_add_module(
+	realesrganbind 
+	src/realesrganbind.h
+	src/realesrganbind.cpp 
+	Real-ESRGAN-ncnn-vulkan/src/realesrgan.h 
+	Real-ESRGAN-ncnn-vulkan/src/realesrgan.cpp
 )
-add_dependencies(realesrganbind ncnn generate-spirv)
+
+add_dependencies(realesrganbind generate-spirv)
 
 set_property(TARGET realesrganbind PROPERTY CXX_STANDARD 11)
 
@@ -283,5 +288,6 @@ if(OPENMP_FOUND)
   list(APPEND REALESRGAN_LINK_LIBRARIES ${OpenMP_CXX_LIBRARIES})
 endif()
 
-target_include_directories(realesrganbind PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(realesrganbind PRIVATE ${REALESRGAN_LINK_LIBRARIES})
+
+set_target_properties(realesrganbind PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)

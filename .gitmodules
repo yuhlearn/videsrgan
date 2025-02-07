@@ -1,3 +1,6 @@
 [submodule "videsrgan/Real-ESRGAN-ncnn-vulkan"]
 	path = videsrgan/Real-ESRGAN-ncnn-vulkan
 	url = https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan.git
+[submodule "videsrgan/pybind11"]
+	path = videsrgan/pybind11
+	url = https://github.com/pybind/pybind11.git
