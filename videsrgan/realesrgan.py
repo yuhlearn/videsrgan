@@ -1,10 +1,31 @@
-import pathlib
-from typing import Dict, Optional, Union
+import pathlib, os
 from PIL import Image
 import sys
 
-sys.path.insert(0, './videsrgan/lib/')
+sys.path.insert(0, os.path.dirname(__file__) + "/lib/")
 import realesrganbind as bindings
+
+class suppress_stderr(object):
+    """
+    A context manager for doing a "deep suppression" of stdout and stderr
+    """
+
+    def __init__(self):
+        # Open a null file.
+        self.null_fd = os.open(os.devnull, os.O_RDWR) 
+        # Save the stderr file descriptor.
+        self.save_fd = os.dup(2)
+
+    def __enter__(self):
+        # Assign the null pointer to stderr.
+        os.dup2(self.null_fd, 2)
+
+    def __exit__(self, *_):
+        # Re-assign the real stderr back to (2)
+        os.dup2(self.save_fd, 2)
+        # Close the file descriptors
+        os.close(self.null_fd)
+        os.close(self.save_fd)
 
 class RealESRGAN:
     def __init__(self, gpuid: int = 0, tta_mode: bool = False, tilesize: int = 0, scale: int = 4, model_path: str = "models", model: str = "RealESRGAN_General_WDN_x4_v3"):
@@ -33,6 +54,8 @@ class RealESRGAN:
 
         self.raw_in_image = None
         self.raw_out_image = None
+
+        bindings.create_gpu_instance()
 
         self._load()
 
@@ -63,7 +86,9 @@ class RealESRGAN:
         self._realesrgan_object.load(str(param_path), str(model_path))
 
     def process(self) -> None:
-        self._realesrgan_object.process(self.raw_in_image, self.raw_out_image)
+        # Suppress all stderr output to avoid printing the default ncnn % progress 
+        with suppress_stderr():
+            self._realesrgan_object.process(self.raw_in_image, self.raw_out_image)
 
     def process_pil(self, _image: Image) -> Image:
         """

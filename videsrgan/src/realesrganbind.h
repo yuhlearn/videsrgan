@@ -43,6 +43,8 @@ private:
 
 int get_gpu_count();
 
+int create_gpu_instance();
+
 void destroy_gpu_instance();
 
 #endif // _REALESRGANBIND_H

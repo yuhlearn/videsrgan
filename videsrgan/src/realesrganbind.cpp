@@ -85,10 +85,13 @@ int RealESRGANBind::process(const RealESRGANImage &inimage, RealESRGANImage &out
         ncnn::Mat(inimage.w, inimage.h, (void *)inimage.d.data(), (size_t)c, c);
     ncnn::Mat outimagemat =
         ncnn::Mat(outimage.w, outimage.h, (void *)outimage.d.data(), (size_t)c, c);
+
     return RealESRGAN::process(inimagemat, outimagemat);
 }
 
 int get_gpu_count() { return ncnn::get_gpu_count(); }
+
+int create_gpu_instance() { return ncnn::create_gpu_instance(); }
 
 void destroy_gpu_instance() { ncnn::destroy_gpu_instance(); }
 
@@ -106,6 +109,8 @@ PYBIND11_MODULE(realesrganbind, m)
         .def("set_data", &RealESRGANImage::set_data);
 
     m.def("get_gpu_count", &get_gpu_count);
+
+    m.def("create_gpu_instance", &create_gpu_instance);
 
     m.def("destroy_gpu_instance", &destroy_gpu_instance);
 }
