@@ -1,8 +1,7 @@
-import argparse, os, av
-import av.audio
-import av.codec
-
+import argparse, os
 from videsrgan.realesrgan import RealESRGAN
+from videsrgan.realesrganfx import RealESRGANFx
+from moviepy import VideoFileClip, vfx
 
 def int_constraint(input, constraint):
     try:      
@@ -45,7 +44,7 @@ def main():  # pragma: no cover
     parser.add_argument('-t', help='tile size (>=32/0=auto, default=0)', type=tilesize_type, default=0)
     parser.add_argument('-m', help='folder path to the pre-trained models. default=models', type=dir_type, default='./models')
     parser.add_argument('-n', help='model name (default=RealESRGAN_General_WDN_x4_v3, can be RealESRGAN_General_WDN_x4_v3 | realesrgan-x4plus)', type=str, default='RealESRGAN_General_WDN_x4_v3')
-    parser.add_argument('-g', help='gpu device to use (default=auto) can be 0,1,2 for multi-gpu', type=gpuid_type, default=0)
+    parser.add_argument('-g', help='gpu device to use (default=auto) can be 0,1,2 for multi-gpu', type=gpuid_type, default=-1)
     parser.add_argument('-s', help='upscale ratio (can be 2, 3, 4. default=4)', type=scale_type, default=4)
     parser.add_argument('-q', help='a lower CRF gives better video quality (0>=51, default=17)', type=crf_type, default=17)
     parser.add_argument('-x', help='enable tta mode', action='store_true')
@@ -62,46 +61,10 @@ def main():  # pragma: no cover
         model=args.n
     )
 
-    with av.open(args.o.name, 'w') as output_container:
-        with av.open(args.i.name, 'r') as input_container:
-            # # Begin work on the audio stream(s)
-            # for input_audio_stream in input_container.streams.audio:
-            #     output_audio_stream = output_container.add_stream('mp3')
-            #     output_audio_stream.layout = 'stereo'
+    input_video = VideoFileClip(args.i.name)
 
-            #     for input_audio_frame in input_container.decode(input_audio_stream):
-            #         for output_audio_packet in output_audio_stream.encode(input_audio_frame):
-            #             output_container.mux(output_audio_packet)
-                
-            #     # Flush the audio stream
-            #     output_container.mux(output_audio_stream.encode())
+    rotated_video = input_video.with_effects([RealESRGANFx(realesrgan)])
 
-            #     print('Finished audio encoding.')
+    rotated_video.write_videofile(args.o.name, codec='libx264', ffmpeg_params=["-crf", str(args.q)])
 
-            # Begin work on the video stream
-            input_video_stream = input_container.streams.video[0]
 
-            output_video_stream = output_container.add_stream('h264', input_video_stream.guessed_rate)
-            output_video_stream.pix_fmt = 'yuv420p'
-            output_video_stream.width = input_video_stream.width * args.s
-            output_video_stream.height = input_video_stream.height * args.s
-            output_video_stream.options = {
-                'crf' : str(args.q), 
-                'preset' : 'veryslow', 
-                'tune' : 'film'
-            }
-            
-            for input_video_frame in input_container.decode(input_video_stream):
-                input_video_image = input_video_frame.to_image() 
-
-                # Do someting to the image
-                output_video_image = realesrgan.process_pil(input_video_image)                
-
-                output_video_frame = av.VideoFrame.from_image(output_video_image)
-                output_video_frame.pts = None
-
-                for output_video_packet in output_video_stream.encode(output_video_frame):
-                    output_container.mux(output_video_packet)
-
-            # Flush the video stream
-            output_container.mux(output_video_stream.encode())

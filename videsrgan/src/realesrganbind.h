@@ -43,6 +43,8 @@ private:
 
 int get_gpu_count();
 
+int get_default_gpu_index();
+
 int create_gpu_instance();
 
 void destroy_gpu_instance();

@@ -1,11 +1,16 @@
 project(videsrgan)
 
 cmake_minimum_required(VERSION 3.9)
-cmake_policy(SET CMP0078 NEW)
-cmake_policy(SET CMP0086 NEW)
 cmake_policy(SET CMP0091 NEW)
+
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# -------------- Support C++17 for using filesystem  ------------------#
+# https://cmake.org/cmake/help/latest/prop_tgt/CXX_STANDARD.html
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE release CACHE STRING "Choose the type of build" FORCE)
@@ -236,6 +241,7 @@ if(NOT USE_SYSTEM_NCNN)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Real-ESRGAN-ncnn-vulkan/src/ncnn)
 endif()
 
+# look for vulkan compute shader and compile
 set(SHADER_SPV_HEX_FILES)
 
 realesrgan_add_shader(realesrgan_preproc.comp)
@@ -256,8 +262,6 @@ pybind11_add_module(
 )
 
 add_dependencies(realesrganbind generate-spirv)
-
-set_property(TARGET realesrganbind PROPERTY CXX_STANDARD 11)
 
 set(REALESRGAN_LINK_LIBRARIES ncnn ${Vulkan_LIBRARY})
 

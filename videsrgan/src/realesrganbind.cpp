@@ -29,11 +29,6 @@ int RealESRGANBind::get_tilesize() const
 {
     int tilesize = 0;
 
-    if (this->gpuid < 0)
-    {
-        return 400;
-    }
-
     uint32_t heap_budget = ncnn::get_gpu_device(this->gpuid)->get_heap_budget();
 
     if (heap_budget >= 1900)
@@ -91,6 +86,8 @@ int RealESRGANBind::process(const RealESRGANImage &inimage, RealESRGANImage &out
 
 int get_gpu_count() { return ncnn::get_gpu_count(); }
 
+int get_default_gpu_index() { return ncnn::get_default_gpu_index(); }
+
 int create_gpu_instance() { return ncnn::create_gpu_instance(); }
 
 void destroy_gpu_instance() { ncnn::destroy_gpu_instance(); }
@@ -109,6 +106,8 @@ PYBIND11_MODULE(realesrganbind, m)
         .def("set_data", &RealESRGANImage::set_data);
 
     m.def("get_gpu_count", &get_gpu_count);
+
+    m.def("get_default_gpu_index", &get_default_gpu_index);
 
     m.def("create_gpu_instance", &create_gpu_instance);
 
