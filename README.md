@@ -3,14 +3,36 @@
 [![codecov](https://codecov.io/gh/yuhlearn/videsrgan/branch/main/graph/badge.svg?token=videsrgan_token_here)](https://codecov.io/gh/yuhlearn/videsrgan)
 [![CI](https://github.com/yuhlearn/videsrgan/actions/workflows/main.yml/badge.svg)](https://github.com/yuhlearn/videsrgan/actions/workflows/main.yml)
 
-Awesome videsrgan created by yuhlearn
+This is a project under development, not everything is in place right now.
 
-## Building on Debian/Ubuntu
+## Building on Linux
 
-To build the project you first need the following packages installed
+In order to build the project, you first need the essential Vulkan build requirements
 
+```bash
+apt-get install libvulkan-dev
 ```
-sudo apt install build-essential git cmake libprotobuf-dev protobuf-compiler libomp-dev libvulkan-dev vulkan-tools libopencv-dev mesa-vulkan-drivers
+```bash
+dnf install vulkan-headers vulkan-loader-devel
+```
+```bash
+pacman -S vulkan-headers vulkan-icd-loader
+```
+
+Clone the repo and initialize the submodules
+```bash
+git clone https://github.com/yuhlearn/videsrgan.git
+cd videsrgan
+git submodule update --init --recursive
+```
+
+Build with CMake
+```bash
+cd videsrgan
+mkdir build
+cd build
+cmake ../src
+cmake --build . -j 4
 ```
 
 ## Creating a virtualenv
@@ -28,19 +50,8 @@ pip install videsrgan
 
 ## Usage
 
-```py
-from videsrgan import BaseClass
-from videsrgan import base_function
-
-BaseClass().base_method()
-base_function()
-```
-
 ```bash
-$ python -m videsrgan
+python -m videsrgan
 #or
-$ videsrgan
+videsrgan
 ```
-
-## Development
-
