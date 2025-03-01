@@ -31,7 +31,7 @@ Build with CMake
 cd videsrgan
 mkdir build
 cd build
-cmake ../src
+cmake ../
 cmake --build . -j 4
 ```
 

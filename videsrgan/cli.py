@@ -87,7 +87,7 @@ def main():  # pragma: no cover
         dest='model_dir',
         metavar='D',
         type=dir_type, 
-        default='./models'
+        default=os.path.dirname(__file__) + '/models/'
         )
     esrgan_group.add_argument(
         '-n', '--model',
