@@ -1,7 +1,7 @@
 import pathlib, os, sys
 from PIL import Image
 
-sys.path.insert(0, os.path.dirname(__file__) + "/lib/")
+sys.path.insert(0, os.path.dirname(__file__))
 import realesrganbind as bindings
 
 class RealESRGAN:
