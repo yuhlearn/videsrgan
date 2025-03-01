@@ -74,12 +74,12 @@ def main():  # pragma: no cover
     
     # ESRGAN options
     esrgan_group.add_argument(
-        '-t', '--tile_size',
-        help='tile size (>=32 | 0=auto)',
-        dest='tile_size',
+        '-g', '--gpu',
+        help='gpu device to use (>=0 | -1=auto)',
+        dest='gpu',
         metavar='I',
-        type=tilesize_type, 
-        default=0
+        type=gpuid_type, 
+        default=-1
         )
     esrgan_group.add_argument(
         '-m', '--model_dir',
@@ -98,20 +98,20 @@ def main():  # pragma: no cover
         default='RealESRGAN_General_WDN_x4_v3'
         )
     esrgan_group.add_argument(
-        '-g', '--gpu',
-        help='gpu device to use (>=0 | -1=auto)',
-        dest='gpu',
-        metavar='I',
-        type=gpuid_type, 
-        default=-1
-        )
-    esrgan_group.add_argument(
         '-s', '--scale',
-        help='upscale ratio (2 | 3 | 4)',
+        help='upscale ratio (2 | 3 | 4) must match the model, which is usually indicated by the name e.g. "4x"',
         dest='scale',
         metavar='I',
         type=scale_type, 
         default=4
+        )
+    esrgan_group.add_argument(
+        '-t', '--tile_size',
+        help='tile size (>=32 | 0=auto)',
+        dest='tile_size',
+        metavar='I',
+        type=tilesize_type, 
+        default=0
         )
     esrgan_group.add_argument(
         '-x', '--tta',
@@ -130,6 +130,20 @@ def main():  # pragma: no cover
         default='libx264'
         )
     ffmpeg_group.add_argument(
+        '-f', '--pix_fmt',
+        help='pixel format for the output video file (run "ffmpeg -pix_fmts" for available formats)',
+        dest='pixel_format',
+        metavar='S',
+        type=str, 
+        default=None
+        )
+    ffmpeg_group.add_argument(
+        '-l', '--log',
+        help='write log files for the audio and the video',
+        dest='log',
+        action='store_true'
+        )
+    ffmpeg_group.add_argument(
         '-p', '--preset',
         help='preset (ultrafast | superfast | veryfast | faster | fast | medium | slow | slower | veryslow | placebo)',
         dest='preset',
@@ -146,21 +160,7 @@ def main():  # pragma: no cover
         default=None
         )
     ffmpeg_group.add_argument(
-        '-f', '--pix_fmt',
-        help='pixel format for the output video file (run "ffmpeg -pix_fmts" for available formats)',
-        dest='pixel_format',
-        metavar='S',
-        type=str, 
-        default=None
-        )
-    ffmpeg_group.add_argument(
-        '-l', '--log',
-        help='write log files for the audio and the video',
-        dest='log',
-        action='store_true'
-        )
-    ffmpeg_group.add_argument(
-        '--params', 
+        '-', '--params', 
         help='interprets the remaider as ffmpeg parameters (e.g. "-crf 0" to set libx264 constant rate factor)',
         dest='ffmpeg_params',
         nargs=argparse.REMAINDER
