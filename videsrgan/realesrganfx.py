@@ -1,11 +1,8 @@
-import numbers
-from dataclasses import dataclass
-from typing import Union
-
+import os
 import numpy as np
+from dataclasses import dataclass
 from PIL import Image
 from videsrgan.realesrgan import RealESRGAN
-
 from moviepy.Effect import Effect
 
 @dataclass
@@ -47,21 +44,20 @@ class RealESRGANFx(Effect):
 
     def upscaler(self, frame):
         """Resize the image using PIL."""
+
         pil_img = Image.fromarray(frame)
         upscaled_pil = self.realesrgan.process_pil(pil_img)
         return np.array(upscaled_pil)
 
     def apply(self, clip):
         """Apply the effect to the clip."""
+
         w, h = clip.size
 
         if clip.is_mask:
-
             def image_filter(frame):
                 return (1.0 * self.upscaler((255 * frame).astype("uint8")) / 255.0)
-
         else:
-
             def image_filter(frame):
                 return self.upscaler(frame.astype("uint8"))
 

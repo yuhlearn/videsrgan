@@ -16,7 +16,6 @@ def tilesize_type(input):
     return int_constraint(input, (lambda x : (x == 0 or x >= 32)))
 
 def dir_type(input):
-    return input
     if os.path.isdir(input):
         return input
     else:
@@ -24,6 +23,9 @@ def dir_type(input):
     
 def gpuid_type(input):
     return int_constraint(input, (lambda x : (x >= -1)))
+
+def threads_type(input):
+    return int_constraint(input, (lambda x : (x >= 1)))
 
 def scale_type(input):
     scales = (2,3,4)
@@ -33,38 +35,163 @@ def scale_type(input):
     else:
         raise argparse.ArgumentTypeError(f"'{input}' is not a valid scale")
     
-def crf_type(input):
-    return int_constraint(input, (lambda x : (x >= 0 and x <= 51)))
+def param_type(input):
+    return input
 
-def main():  # pragma: no cover   
-    parser = argparse.ArgumentParser(prog='videnh', description='What the program does')
+def main():  # pragma: no cover
+    usage='videsrgan -i INFILE -o OUTFILE [OPTIONS] [--params [FFMPEG OPTIONS]]'
+    description='Upscale videos using Real ESRGAN NCNN Vulkan and FFMPEG.'
+    epilog=''
 
-    parser.add_argument('-i', help='input video path', type=argparse.FileType('r', encoding='UTF-8'), required=True)
-    parser.add_argument('-o', help='output video path', type=argparse.FileType('w', encoding='UTF-8'))
-    parser.add_argument('-t', help='tile size (>=32/0=auto, default=0)', type=tilesize_type, default=0)
-    parser.add_argument('-m', help='folder path to the pre-trained models. default=models', type=dir_type, default='./models')
-    parser.add_argument('-n', help='model name (default=RealESRGAN_General_WDN_x4_v3, can be RealESRGAN_General_WDN_x4_v3 | realesrgan-x4plus)', type=str, default='RealESRGAN_General_WDN_x4_v3')
-    parser.add_argument('-g', help='gpu device to use (default=auto) can be 0,1,2 for multi-gpu', type=gpuid_type, default=-1)
-    parser.add_argument('-s', help='upscale ratio (can be 2, 3, 4. default=4)', type=scale_type, default=4)
-    parser.add_argument('-q', help='a lower CRF gives better video quality (0>=51, default=17)', type=crf_type, default=17)
-    parser.add_argument('-x', help='enable tta mode', action='store_true')
-    parser.add_argument('-v', help='verbose output', action='store_true')
+    parser = argparse.ArgumentParser(
+        prog='videsrgan',
+        usage=usage,
+        description=description,
+        epilog=epilog,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        )
+    
+    esrgan_group = parser.add_argument_group('Real ESRGAN options')
+    ffmpeg_group = parser.add_argument_group('FFMPEG options')
+
+    # Basic options
+    parser.add_argument(
+        '-i', '--input',
+        help='input video path',
+        dest='input',
+        metavar='F',
+        type=argparse.FileType('r', encoding='UTF-8'), 
+        required=True
+        )
+    parser.add_argument(
+        '-o', '--output',
+        help='output video path', 
+        dest='output',
+        metavar='F',
+        type=argparse.FileType('w', encoding='UTF-8'),
+        required=True
+        )
+    
+    # ESRGAN options
+    esrgan_group.add_argument(
+        '-t', '--tile_size',
+        help='tile size (>=32 | 0=auto)',
+        dest='tile_size',
+        metavar='I',
+        type=tilesize_type, 
+        default=0
+        )
+    esrgan_group.add_argument(
+        '-m', '--model_dir',
+        help='folder path to the pre-trained models',
+        dest='model_dir',
+        metavar='D',
+        type=dir_type, 
+        default='./models'
+        )
+    esrgan_group.add_argument(
+        '-n', '--model',
+        help='model name (RealESRGAN_General_WDN_x4_v3 | realesrgan-x4plus)', 
+        dest='model',
+        metavar='S',
+        type=str, 
+        default='RealESRGAN_General_WDN_x4_v3'
+        )
+    esrgan_group.add_argument(
+        '-g', '--gpu',
+        help='gpu device to use (>=0 | -1=auto)',
+        dest='gpu',
+        metavar='I',
+        type=gpuid_type, 
+        default=-1
+        )
+    esrgan_group.add_argument(
+        '-s', '--scale',
+        help='upscale ratio (2 | 3 | 4)',
+        dest='scale',
+        metavar='I',
+        type=scale_type, 
+        default=4
+        )
+    esrgan_group.add_argument(
+        '-x', '--tta',
+        help='enable tta mode',
+        dest='tta',
+        action='store_true'
+        )
+    
+    # FFMPEG options
+    ffmpeg_group.add_argument(
+        '-c', '--codec',
+        help='codec (libx264 | rawvideo | png | libvpx or any other codec supported by ffmpeg)',
+        dest='codec',
+        metavar='S',
+        type=str, 
+        default='libx264'
+        )
+    ffmpeg_group.add_argument(
+        '-p', '--preset',
+        help='preset (ultrafast | superfast | veryfast | faster | fast | medium | slow | slower | veryslow | placebo)',
+        dest='preset',
+        metavar='S',
+        type=str, 
+        default='medium'
+        )
+    ffmpeg_group.add_argument(
+        '-u', '--threads',
+        help='number of threads to use for ffmpeg (>=1)',
+        dest='threads',
+        metavar='I',
+        type=threads_type, 
+        default=None
+        )
+    ffmpeg_group.add_argument(
+        '-f', '--pix_fmt',
+        help='pixel format for the output video file (run "ffmpeg -pix_fmts" for available formats)',
+        dest='pixel_format',
+        metavar='S',
+        type=str, 
+        default=None
+        )
+    ffmpeg_group.add_argument(
+        '-l', '--log',
+        help='write log files for the audio and the video',
+        dest='log',
+        action='store_true'
+        )
+    ffmpeg_group.add_argument(
+        '--params', 
+        help='interprets the remaider as ffmpeg parameters (e.g. "-crf 0" to set libx264 constant rate factor)',
+        dest='ffmpeg_params',
+        nargs=argparse.REMAINDER
+        )
 
     args = parser.parse_args()
 
     realesrgan = RealESRGAN(
-        gpuid=args.g, 
-        tta_mode=args.x, 
-        tilesize=args.t, 
-        scale=args.s,
-        model_path=args.m,
-        model=args.n
-    )
+        gpuid=args.gpu, 
+        tta_mode=args.tta, 
+        tilesize=args.tile_size, 
+        scale=args.scale,
+        model_path=args.model_dir,
+        model=args.model
+        )
 
-    input_video = VideoFileClip(args.i.name)
+    input_video = VideoFileClip(args.input.name)
 
-    rotated_video = input_video.with_effects([RealESRGANFx(realesrgan)])
+    enhanced_video = input_video.with_effects([RealESRGANFx(realesrgan)])
 
-    rotated_video.write_videofile(args.o.name, codec='libx264', ffmpeg_params=["-crf", str(args.q)])
+    enhanced_video.write_videofile(
+        filename=args.output.name,
+        codec=args.codec,
+        preset=args.preset,
+        threads=args.threads,
+        ffmpeg_params=args.ffmpeg_params,
+        pixel_format=args.pixel_format,
+        write_logfile=args.log
+        )
+    
+    enhanced_video.close()
+    input_video.close()
 
 

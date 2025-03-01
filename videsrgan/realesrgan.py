@@ -1,6 +1,5 @@
-import pathlib, os
+import pathlib, os, sys
 from PIL import Image
-import sys
 
 sys.path.insert(0, os.path.dirname(__file__) + "/lib/")
 import realesrganbind as bindings
@@ -64,7 +63,11 @@ class RealESRGAN:
 
         self._realesrgan_object.load(str(param_path), str(model_path))
 
-    def process(self) -> None:
+    def _process(self) -> None:
+        """
+        Helper function for process_pil
+        """
+        
         self._realesrgan_object.process(self.raw_in_image, self.raw_out_image)
 
     def process_pil(self, _image: Image) -> Image:
@@ -93,7 +96,7 @@ class RealESRGAN:
             channels,
         )
 
-        self.process()
+        self._process()
 
         return Image.frombytes(
             _image.mode,
