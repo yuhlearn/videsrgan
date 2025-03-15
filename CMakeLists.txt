@@ -291,6 +291,6 @@ if(OPENMP_FOUND)
     list(APPEND REALESRGAN_LINK_LIBRARIES ${OpenMP_CXX_LIBRARIES})
 endif()
 
+target_link_libraries(realesrganbind PRIVATE ${REALESRGAN_LINK_LIBRARIES} -static-libstdc++)
 set_target_properties(realesrganbind PROPERTIES OUTPUT_NAME "realesrganbind")
-target_link_libraries(realesrganbind PUBLIC ${REALESRGAN_LINK_LIBRARIES} -static-libstdc++)
 set_target_properties(realesrganbind PROPERTIES PREFIX "" LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/videsrgan)
